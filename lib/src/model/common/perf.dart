@@ -32,6 +32,14 @@ enum Perf {
   final String shortTitle;
   final IconData icon;
 
+  factory Perf.fromMap(Map<String, dynamic> map) {
+    final key = map['key'] as String?;
+    if (key == null) {
+      throw Exception('Perf key is missing');
+    }
+    return Perf.nameMap[key] ?? (throw Exception('Invalid Perf key: $key'));
+  }
+
   factory Perf.fromVariantAndSpeed(Variant variant, Speed speed) {
     switch (variant) {
       case Variant.standard:
@@ -73,7 +81,9 @@ enum Perf {
   static final IMap<String, Perf> nameMap = IMap(Perf.values.asNameMap());
 }
 
-String _titleKey(String title) => title.toLowerCase().replaceAll(RegExp('[ -_]'), '');
+
+String _titleKey(String title) =>
+    title.toLowerCase().replaceAll(RegExp('[ -_]'), '');
 
 final IMap<String, Perf> _lowerCaseTitleMap = Perf.nameMap.map(
   (key, value) => MapEntry(_titleKey(value.title), value),
@@ -115,4 +125,9 @@ extension PerfExtension on Pick {
       return null;
     }
   }
+
+  
 }
+
+
+

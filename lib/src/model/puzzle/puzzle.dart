@@ -77,6 +77,19 @@ class PuzzleRound with _$PuzzleRound {
       _PuzzleRound;
 }
 
+extension SideExtension on String {
+  Side asSide() {
+    switch (this) {
+      case 'white':
+        return Side.white;
+      case 'black':
+        return Side.black;
+      default:
+        throw ArgumentError('Invalid side: $this');
+    }
+  }
+}
+
 @Freezed(fromJson: true, toJson: true)
 class PuzzleGame with _$PuzzleGame {
   const factory PuzzleGame({
@@ -88,7 +101,28 @@ class PuzzleGame with _$PuzzleGame {
     required String pgn,
   }) = _PuzzleGame;
 
-  factory PuzzleGame.fromJson(Map<String, dynamic> json) => _$PuzzleGameFromJson(json);
+  factory PuzzleGame.fromJson(Map<String, dynamic> json) => _$_PuzzleGameFromJson(json);
+}
+
+// Custom fromJson method for PuzzleGame
+PuzzleGame _$_PuzzleGameFromJson(Map<String, dynamic> json) {
+
+  PuzzleGamePlayer _loadPlayer(Map<String, dynamic> playerJson) {
+    return PuzzleGamePlayer(
+      name: playerJson['name'] as String,
+      side: (playerJson['color'] as String).asSide(),
+      title: playerJson['title'] as String?,
+    );
+  }
+
+  return PuzzleGame(
+    id: GameId.fromJson(json['id']),
+    perf: Perf.fromMap(json['perf'] as Map<String, dynamic>),
+    rated: json['rated'] as bool,
+    white: _loadPlayer((json['players'] as List<dynamic>)[0] as Map<String, dynamic>),
+    black: _loadPlayer((json['players'] as List<dynamic>)[1] as Map<String, dynamic>),
+    pgn: json['pgn'] as String,
+  );
 }
 
 @Freezed(fromJson: true, toJson: true)
