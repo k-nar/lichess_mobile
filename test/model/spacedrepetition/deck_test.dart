@@ -1,34 +1,41 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
+import 'package:lichess_mobile/src/model/puzzle/puzzle.dart';
+import 'package:lichess_mobile/src/model/spacedrepetition/deck.dart';
+import 'package:collection/collection.dart';
 import 'dart:io';
 import 'dart:convert';
-import 'package:lichess_mobile/src/model/spacedrepetition/deck.dart';  // Adjust the import to your actual package
-
 
 void main() {
-  group('Deck.loadFromJSON', () {
-    test('should load Deck from valid JSON string', () {
-      // Arrange
-      final jsonContent = File('assets/test/deck_test.json').readAsStringSync();
+  group('Deck', () {
+    test('withInitialCards creates a deck with sorted puzzles and initial cards', () {
+      // Load puzzles from puzzles_test.json
+      final String jsonString = File('assets/test/puzzles_test.json').readAsStringSync();
+      final List<dynamic> jsonList = json.decode(jsonString) as List<dynamic>;
+      final allPuzzles = jsonList.map((json) => Puzzle.fromJson(json as Map<String, dynamic>)).toList();
 
-      // Act
-      final deck = Deck.loadFromJSON(jsonContent);
+      final deck = Deck.withInitialCards(allPuzzles, 10);
 
-      // Assert
-      expect(deck, isNotNull);
-      expect(deck!.allPuzzles.length, 83);
-      expect(deck.allPuzzles.first.puzzle.id, 'ZUuvO');
-    });
+      // Check if all puzzles are in the deck
+      expect(deck.allPuzzles.length, equals(allPuzzles.length));
 
-    test('should return null on invalid JSON string', () {
-      // Arrange
-      final invalidJsonContent = '{"allPuzzles": [ {"puzzleID": "puzzle_1"}],'; // Missing closing braces
+      // Check if puzzles are sorted by rating
 
-      // Act
-      final deck = Deck.loadFromJSON(invalidJsonContent);
+      // Check if the first puzzle has the expected rating
+      expect(deck.allPuzzles.first.puzzle.rating, equals(1462));
 
-      // Assert
-      expect(deck, isNull);
+      // Check if the correct number of initial cards were created
+      expect(deck.reviewingCards.length, equals(10));
+
+      // Check if the initial cards correspond to the first 10 sorted puzzles
+      for (int i = 0; i < 10; i++) {
+        expect(deck.reviewingCards[i].puzzleId, equals(deck.allPuzzles[i].puzzle.id.toJson()));
+      }
+
+      // Check if cardToPuzzle is correctly populated
+      expect(deck.cardToPuzzle.length, equals(10));
+      for (int i = 0; i < 10; i++) {
+        expect(deck.cardToPuzzle[deck.reviewingCards[i].puzzleId], equals(deck.allPuzzles[i]));
+      }
     });
   });
 }

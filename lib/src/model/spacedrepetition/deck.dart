@@ -17,6 +17,7 @@ class Deck {
   Deck(this.allPuzzles, {this.reviewingCards = const []})
       : cardToPuzzle = HashMap<String, Puzzle>(),
         session = HashMap<String, Rating>() {
+    _sortPuzzlesByRating();
     _initializeReviewingCards();
   }
 
@@ -25,6 +26,10 @@ class Deck {
       var puzzle = allPuzzles.firstWhere((puzzle) => puzzle.puzzle.id.toJson() == card.puzzleId);
       cardToPuzzle[card.puzzleId] = puzzle;
     }
+  }
+
+  void _sortPuzzlesByRating() {
+    allPuzzles.sort((a, b) => a.puzzle.rating.compareTo(b.puzzle.rating));
   }
 
   void _sortDeck() {
@@ -97,7 +102,18 @@ class Deck {
     return deck;
   }
 
+  // New factory method
+  factory Deck.withInitialCards(List<Puzzle> puzzles, int initialNbCards) {
+    // Sort puzzles by rating
+    puzzles.sort((a, b) => a.puzzle.rating.compareTo(b.puzzle.rating));
 
+    // Create initial cards
+    var initialCards = puzzles.take(initialNbCards).map((puzzle) => 
+      Card(puzzle.puzzle.id.toJson())
+    ).toList();
+
+    return Deck(puzzles, reviewingCards: initialCards);
+  }
 
   // Function to save the Deck to a JSON file
   Future<void> saveToDisk(String fileName) async {
@@ -110,6 +126,10 @@ class Deck {
     } catch (e) {
       print('Error saving deck to disk: $e');
     }
+  }
+
+  String toJsonString() {
+    return jsonEncode(toJson());
   }
 
   // Load a Deck instance from a JSON string
