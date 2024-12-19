@@ -37,10 +37,12 @@ final _logger = Logger('HttpClient');
 const _maxCacheSize = 2 * 1024 * 1024;
 
 /// Creates a Uri pointing to lichess server with the given unencoded path and query parameters.
-Uri lichessUri(String unencodedPath, [Map<String, dynamic>? queryParameters]) =>
-    kLichessHost.startsWith('localhost')
-        ? Uri.http(kLichessHost, unencodedPath, queryParameters)
-        : Uri.https(kLichessHost, unencodedPath, queryParameters);
+Uri lichessUri(String unencodedPath, [Map<String, dynamic>? queryParameters]) {
+  final isCustomHost = const String.fromEnvironment('LICHESS_HOST').isNotEmpty;
+  return isCustomHost || kLichessHost.startsWith('localhost')
+      ? Uri.http(kLichessHost, unencodedPath, queryParameters)
+      : Uri.https(kLichessHost, unencodedPath, queryParameters);
+}
 
 /// Creates the appropriate http client for the platform.
 ///
